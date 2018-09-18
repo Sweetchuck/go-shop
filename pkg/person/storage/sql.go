@@ -14,9 +14,17 @@ func (s *Sql) Init(db *gorm.DB) {
 }
 
 func (s *Sql) Insert(p model.Person) (model.Person, error) {
-	s.db.Model(p).Create(&p)
+	pp := &p
 
-	return p, nil
+	s.db.Model(p).Create(pp)
+
+	return *pp, nil
+}
+
+func (s *Sql) Read(id uint) (p model.Person) {
+	s.db.Model(model.Person{}).First(&p)
+
+	return
 }
 
 func (s *Sql) Update(p model.Person, fields map[string]interface{}) (model.Person, error) {
@@ -43,8 +51,9 @@ func (s *Sql) List() (list []model.Person) {
 	return
 }
 
-func (s *Sql) Read(id uint) (p model.Person) {
-	s.db.Model(model.Person{}).First(&p)
+func (s *Sql) Count() int {
+	numOfRecords := new(int)
+	s.db.Model(model.Person{}).Count(numOfRecords)
 
-	return
+	return *numOfRecords
 }

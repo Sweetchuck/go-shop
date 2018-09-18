@@ -2,6 +2,7 @@ package storage
 
 import (
 	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/model"
+	"sort"
 	"sync"
 )
 
@@ -25,7 +26,23 @@ func (m *Memory) Insert(p model.Person) (model.Person, error) {
 	return p, nil
 }
 
+func (m *Memory) Read(id uint) (p model.Person) {
+	return m.people[id]
+}
+
 func (m *Memory) Update(p model.Person, fields map[string]interface{}) (model.Person, error) {
+	for field, value := range fields {
+		switch v := value.(type) {
+		case string:
+			switch field {
+			case "Name", "name": fallthrough
+			case "Pass", "pass": fallthrough
+			case "Email", "email":
+				p.Name = v
+			}
+		}
+	}
+
 	m.Lock()
 	m.people[p.ID] = p
 	m.Unlock()
@@ -40,18 +57,34 @@ func (m *Memory) Delete(id uint) error {
 }
 
 func (m *Memory) List() ([]model.Person) {
-	list := make([]model.Person, len(m.people))
-	for _, p := range m.people {
-		if p.DeletedAt != nil {
+	var list []model.Person
+	for key, _ := range m.people {
+		if m.people[key].DeletedAt != nil {
 			continue
 		}
 
-		list = append(list, p)
+		list = append(list, m.people[key])
 	}
+
+	sort.Slice(
+		list,
+		func (i, j int) bool {
+			return list[i].ID < list[j].ID
+		},
+	)
 
 	return list
 }
 
-func (m *Memory) Read(id uint) (p model.Person) {
-	return m.people[id]
+func (m *Memory) Count() int {
+	numOfItems := 0
+	for key, _ := range m.people {
+		if m.people[key].DeletedAt != nil {
+			continue
+		}
+
+		numOfItems++
+	}
+
+	return numOfItems
 }

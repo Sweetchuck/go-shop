@@ -9,9 +9,13 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"github.com/sirupsen/logrus"
+	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/base"
 	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person"
-	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/model"
-	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/storage"
+	personModel "gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/model"
+	personStorage "gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/storage"
+	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe"
+	shoeModel "gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe/model"
+	shoeStorage "gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe/storage"
 	"net/http"
 	"net/url"
 	"os"
@@ -33,6 +37,8 @@ var Address = ":8080"
 var actionToDo = "listenAndServe"
 
 var personServer person.Server
+
+var shoeServer shoe.Server
 
 var logger = logrus.New()
 
@@ -69,13 +75,16 @@ func main() {
 		initEnvVar("address", &Address)
 
 		personServer = person.Server{}
-		initStorage()
+		shoeServer = shoe.Server{}
 
+		initStorage()
 		router = mux.NewRouter()
+
 		registerPersonServerRoutes(ApiPathPrefix+"/person", personServer)
 
-		logger.Infof("starting web server on: %s", Address)
+		registerShoeServerRoutes(ApiPathPrefix+"/shoe", shoeServer)
 
+		logger.Infof("starting web server on: %s", Address)
 		http.Handle("/", router)
 		err := http.ListenAndServe(Address, nil)
 		if err != nil {
@@ -105,9 +114,13 @@ func initStorage() {
 }
 
 func initStorageMemory() {
-	storageHandler := &storage.Memory{}
-	storageHandler.Init()
-	personServer.Storage = storageHandler
+	psh := &personStorage.Memory{}
+	psh.Init()
+	personServer.Storage = psh
+
+	ssh := &shoeStorage.Memory{}
+	ssh.Init()
+	shoeServer.Storage = ssh
 }
 
 func initStorageSQL(sqlDialect string, sqlArgs []interface{}) {
@@ -122,33 +135,49 @@ func initStorageSQL(sqlDialect string, sqlArgs []interface{}) {
 
 	db.SingularTable(true)
 	db.LogMode(true)
-	db.AutoMigrate(&model.Person{})
 
-	storageHandler := &storage.Sql{}
-	storageHandler.Init(db)
+	db.AutoMigrate(&personModel.Person{})
+	psh := &personStorage.Sql{}
+	psh.Init(db)
+	personServer.Storage = psh
 
-	personServer.Storage = storageHandler
+	db.AutoMigrate(&shoeModel.Shoe{})
+	ssh := &shoeStorage.Sql{}
+	ssh.Init(db)
+	shoeServer.Storage = ssh
 }
 
-func registerPersonServerRoutes(pathPrefix string, ps person.Server) {
+func registerPersonServerRoutes(pathPrefix string, server person.Server) {
 	router.
-		HandleFunc(pathPrefix+"", ps.List).
+		HandleFunc(pathPrefix+"", server.List).
 		Methods("GET")
 
+	registerCrudServerRoutes(pathPrefix, server)
+}
+
+func registerShoeServerRoutes(pathPrefix string, server shoe.Server) {
 	router.
-		HandleFunc(pathPrefix+"", ps.Insert).
+		HandleFunc(pathPrefix+"", server.List).
+		Methods("GET")
+
+	registerCrudServerRoutes(pathPrefix, server)
+}
+
+func registerCrudServerRoutes(pathPrefix string, server base.CrudServer) {
+	router.
+		HandleFunc(pathPrefix+"", server.Create).
 		Methods("POST")
 
 	router.
-		HandleFunc(pathPrefix+"/{id}", ps.Read).
+		HandleFunc(pathPrefix+"/{id}", server.Read).
 		Methods("GET")
 
 	router.
-		HandleFunc(pathPrefix+"/{id}", ps.Update).
+		HandleFunc(pathPrefix+"/{id}", server.Update).
 		Methods("PATCH")
 
 	router.
-		HandleFunc(pathPrefix+"/{id}", ps.Delete).
+		HandleFunc(pathPrefix+"/{id}", server.Delete).
 		Methods("DELETE")
 }
 

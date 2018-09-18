@@ -52,7 +52,6 @@ test:
 	mkdir -p "$(buildDir)/log"
 
 	go test \
-		-v \
 		-coverprofile="$(buildDir)/log/coverage.out" \
 		./...
 

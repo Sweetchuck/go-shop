@@ -1,12 +1,12 @@
-package person
+package shoe
 
 import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
-	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/model"
-	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/storage"
+	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe/model"
+	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe/storage"
 	"net/http"
 	"strconv"
 )
@@ -22,7 +22,7 @@ func (s Server) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var p *model.Person
+	var p *model.Shoe
 	err := json.NewDecoder(r.Body).Decode(&p)
 	if err != nil {
 		http.Error(w, err.Error(), 400)
@@ -35,7 +35,9 @@ func (s Server) Create(w http.ResponseWriter, r *http.Request) {
 	p2, _ := s.Storage.Insert(*p)
 	body := map[string]interface{}{
 		"error": "",
-		"new": p2,
+		"items": []model.Shoe{
+			p2,
+		},
 	}
 
 	s.jsonBody(w, body)
@@ -76,7 +78,6 @@ func (s Server) List(w http.ResponseWriter, r *http.Request) {
 	body := map[string]interface{}{
 		"error": "",
 		"items": s.Storage.List(),
-		"count": s.Storage.Count(),
 	}
 
 	s.jsonBody(w, body)

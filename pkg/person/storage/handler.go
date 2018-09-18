@@ -7,5 +7,6 @@ type Handler interface {
 	Update(p model.Person, fields map[string]interface{}) (model.Person, error)
 	Delete(id uint) error
 	List() []model.Person
+	Count() int
 	Read(id uint) model.Person
 }
