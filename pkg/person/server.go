@@ -30,11 +30,13 @@ func (s Server) Insert(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	s.Storage.Insert(*p)
+	p.ID = 0
+
+	p2, _ := s.Storage.Insert(*p)
 	body := map[string]interface{}{
 		"error": "",
 		"items": []model.Person{
-			*p,
+			p2,
 		},
 	}
 
