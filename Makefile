@@ -55,7 +55,7 @@ build-arm:
 	go build \
 		-v \
 		-p 8 \
-		-o "$(buildDir)/$(projectName)-$(version)-ARM" \
+		-o "$(buildDir)/$(projectName)-$(version)-armv6l" \
 		-ldflags "-X main.GitRev=$(gitRev)" \
 		.
 
