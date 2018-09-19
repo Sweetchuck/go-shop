@@ -57,7 +57,7 @@ func initCliArgsAndOptions() {
 	}
 }
 
-func initEnvVar(name string, dst *string) {
+func writeEnvVarIntoString(name string, dst *string) {
 	value := os.Getenv(envVarName(name))
 	if value != "" {
 		*dst = value
@@ -70,9 +70,9 @@ func main() {
 		fmt.Printf("%s\n", fullVersion())
 
 	default:
-		initEnvVar("data_source_url", &DataSourceUrl)
-		initEnvVar("api_path_prefix", &ApiPathPrefix)
-		initEnvVar("address", &Address)
+		writeEnvVarIntoString("data_source_url", &DataSourceUrl)
+		writeEnvVarIntoString("api_path_prefix", &ApiPathPrefix)
+		writeEnvVarIntoString("address", &Address)
 
 		personServer = person.Server{}
 		shoeServer = shoe.Server{}

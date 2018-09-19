@@ -1,5 +1,6 @@
 
 buildDir = ./build
+logDir = ./log
 projectName = shop
 versionBase = 1.0.0
 gitRev = "$$(git rev-parse --short=7 HEAD)"
@@ -9,8 +10,13 @@ version = "${versionBase}-${gitRev}"
 
 clean:
 	[ ! -f $(projectName) ] || rm $(projectName);
+
 	if [ -d $(buildDir) ]; then \
 		find $(buildDir) -mindepth 1 -maxdepth 1 -exec rm -rf {} \; ; \
+	fi;
+
+	if [ -d $(logDir) ]; then \
+		find $(logDir) -mindepth 1 -maxdepth 1 -exec rm -rf {} \; ; \
 	fi;
 
 build: clean build-linux build-windows build-darwin build-arm
@@ -70,12 +76,12 @@ build-arm:
 		.
 
 test:
-	mkdir -p "$(buildDir)/log"
+	mkdir -p "$(logDir)"
 
 	go test \
-		-coverprofile="$(buildDir)/log/coverage.out" \
+		-coverprofile="$(logDir)/coverage.out" \
 		./...
 
 	go tool cover \
-		-html="$(buildDir)/log/coverage.out" \
-		-o "$(buildDir)/log/coverage.html"
+		-html="$(logDir)/coverage.out" \
+		-o "$(logDir)/coverage.html"
