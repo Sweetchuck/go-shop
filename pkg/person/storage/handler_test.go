@@ -16,19 +16,19 @@ func TestHandler(t *testing.T) {
 
 	for _, name := range names {
 		t.Run(name, func(t *testing.T) {
-			t.Run("insert", func (t *testing.T) {
+			t.Run("insert", func(t *testing.T) {
 				testInsert(t, name)
 			})
 
-			t.Run("read", func (t *testing.T) {
+			t.Run("read", func(t *testing.T) {
 				testRead(t, name)
 			})
 
-			t.Run("update", func (t *testing.T) {
+			t.Run("update", func(t *testing.T) {
 				testUpdate(t, name)
 			})
 
-			t.Run("delete", func (t *testing.T) {
+			t.Run("delete", func(t *testing.T) {
 				testDelete(t, name)
 			})
 		})
@@ -55,7 +55,7 @@ func storageInstance(name string) (Handler, error) {
 		db.LogMode(true)
 		db.AutoMigrate(&model.Person{})
 
-		sqLite3 := &Sql{}
+		sqLite3 := &SQL{}
 		sqLite3.Init(db)
 		h = sqLite3
 	}

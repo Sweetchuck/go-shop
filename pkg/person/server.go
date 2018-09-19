@@ -2,9 +2,9 @@ package person
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/base"
 	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/model"
 	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/storage"
 	"net/http"
@@ -12,6 +12,7 @@ import (
 )
 
 type Server struct {
+	base    base.Server
 	Storage storage.Handler
 }
 
@@ -38,7 +39,7 @@ func (s Server) Create(w http.ResponseWriter, r *http.Request) {
 		"new":   p2,
 	}
 
-	s.jsonBody(w, body)
+	s.base.JsonBody(w, body)
 }
 
 func (s Server) Read(w http.ResponseWriter, r *http.Request) {
@@ -50,7 +51,7 @@ func (s Server) Read(w http.ResponseWriter, r *http.Request) {
 		"items": s.Storage.Read(uint(id)),
 	}
 
-	s.jsonBody(w, body)
+	s.base.JsonBody(w, body)
 }
 
 func (s Server) Update(w http.ResponseWriter, r *http.Request) {
@@ -76,7 +77,20 @@ func (s Server) Update(w http.ResponseWriter, r *http.Request) {
 	delete(fields, "Id")
 	delete(fields, "id")
 
-	s.Storage.Update(pOld, fields)
+	body := map[string]interface{}{
+		"error": "",
+		"new":   "",
+	}
+
+	pNew, err := s.Storage.Update(pOld, fields)
+	if err != nil {
+		w.WriteHeader(403)
+		body["err"] = err.Error()
+	} else {
+		body["new"] = pNew
+	}
+
+	s.base.JsonBody(w, body)
 }
 
 func (s Server) Delete(w http.ResponseWriter, r *http.Request) {
@@ -91,7 +105,7 @@ func (s Server) Delete(w http.ResponseWriter, r *http.Request) {
 		"error": "",
 	}
 
-	s.jsonBody(w, body)
+	s.base.JsonBody(w, body)
 }
 
 func (s Server) List(w http.ResponseWriter, r *http.Request) {
@@ -101,15 +115,5 @@ func (s Server) List(w http.ResponseWriter, r *http.Request) {
 		"count": s.Storage.Count(),
 	}
 
-	s.jsonBody(w, body)
-}
-
-func (s Server) jsonBody(w http.ResponseWriter, body interface{}) {
-	w.Header().Set("Content-type", "application/json")
-	encodedBody, err := json.MarshalIndent(body, "", "    ")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Fprintf(w, string(encodedBody))
+	s.base.JsonBody(w, body)
 }

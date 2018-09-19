@@ -2,9 +2,9 @@ package shoe
 
 import (
 	"encoding/json"
-	"fmt"
 	"github.com/gorilla/mux"
 	"github.com/sirupsen/logrus"
+	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/base"
 	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe/model"
 	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe/storage"
 	"net/http"
@@ -12,6 +12,7 @@ import (
 )
 
 type Server struct {
+	base    base.Server
 	Storage storage.Handler
 }
 
@@ -40,7 +41,7 @@ func (s Server) Create(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	s.jsonBody(w, body)
+	s.base.JsonBody(w, body)
 }
 
 func (s Server) Read(w http.ResponseWriter, r *http.Request) {
@@ -52,11 +53,46 @@ func (s Server) Read(w http.ResponseWriter, r *http.Request) {
 		"items": s.Storage.Read(uint(id)),
 	}
 
-	s.jsonBody(w, body)
+	s.base.JsonBody(w, body)
 }
 
 func (s Server) Update(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.ParseUint(vars["id"], 10, 64)
 
+	pOld := s.Storage.Read(uint(id))
+	if pOld.ID == 0 {
+		w.WriteHeader(404)
+
+		return
+	}
+
+	fields := map[string]interface{}{}
+	err := json.NewDecoder(r.Body).Decode(&fields)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+
+		return
+	}
+
+	delete(fields, "ID")
+	delete(fields, "Id")
+	delete(fields, "id")
+
+	body := map[string]interface{}{
+		"error": "",
+		"new":   "",
+	}
+
+	pNew, err := s.Storage.Update(pOld, fields)
+	if err != nil {
+		w.WriteHeader(403)
+		body["err"] = err.Error()
+	} else {
+		body["new"] = pNew
+	}
+
+	s.base.JsonBody(w, body)
 }
 
 func (s Server) Delete(w http.ResponseWriter, r *http.Request) {
@@ -71,7 +107,7 @@ func (s Server) Delete(w http.ResponseWriter, r *http.Request) {
 		"error": "",
 	}
 
-	s.jsonBody(w, body)
+	s.base.JsonBody(w, body)
 }
 
 func (s Server) List(w http.ResponseWriter, r *http.Request) {
@@ -80,15 +116,5 @@ func (s Server) List(w http.ResponseWriter, r *http.Request) {
 		"items": s.Storage.List(),
 	}
 
-	s.jsonBody(w, body)
-}
-
-func (s Server) jsonBody(w http.ResponseWriter, body interface{}) {
-	w.Header().Set("Content-type", "application/json")
-	encodedBody, err := json.MarshalIndent(body, "", "    ")
-	if err != nil {
-		fmt.Println(err)
-	}
-
-	fmt.Fprintf(w, string(encodedBody))
+	s.base.JsonBody(w, body)
 }

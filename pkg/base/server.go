@@ -1,6 +1,8 @@
 package base
 
 import (
+	"encoding/json"
+	"fmt"
 	"net/http"
 )
 
@@ -12,7 +14,19 @@ type CrudServer interface {
 	Delete(w http.ResponseWriter, r *http.Request)
 }
 
-// ListServer defines method to list items
+// ListerServer defines method to list items
 type ListerServer interface {
 	List(w http.ResponseWriter, r *http.Request)
+}
+
+type Server struct{}
+
+func (s Server) JsonBody(w http.ResponseWriter, body interface{}) {
+	w.Header().Set("Content-type", "application/json")
+	encodedBody, err := json.MarshalIndent(body, "", "    ")
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Fprintf(w, string(encodedBody))
 }

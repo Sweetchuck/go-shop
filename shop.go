@@ -147,12 +147,12 @@ func initStorageSQL(sqlDialect string, sqlArgs []interface{}) {
 	db.LogMode(true)
 
 	db.AutoMigrate(&personModel.Person{})
-	psh := &personStorage.Sql{}
+	psh := &personStorage.SQL{}
 	psh.Init(db)
 	personServer.Storage = psh
 
 	db.AutoMigrate(&shoeModel.Shoe{})
-	ssh := &shoeStorage.Sql{}
+	ssh := &shoeStorage.SQL{}
 	ssh.Init(db)
 	shoeServer.Storage = ssh
 }

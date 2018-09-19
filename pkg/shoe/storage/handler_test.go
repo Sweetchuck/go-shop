@@ -16,19 +16,19 @@ func TestHandler(t *testing.T) {
 
 	for _, name := range names {
 		t.Run(name, func(t *testing.T) {
-			t.Run("insert", func (t *testing.T) {
+			t.Run("insert", func(t *testing.T) {
 				testInsert(t, name)
 			})
 
-			t.Run("read", func (t *testing.T) {
+			t.Run("read", func(t *testing.T) {
 				testRead(t, name)
 			})
 
-			t.Run("update", func (t *testing.T) {
+			t.Run("update", func(t *testing.T) {
 				testUpdate(t, name)
 			})
 
-			t.Run("delete", func (t *testing.T) {
+			t.Run("delete", func(t *testing.T) {
 				testDelete(t, name)
 			})
 		})
@@ -55,7 +55,7 @@ func storageInstance(name string) (Handler, error) {
 		db.LogMode(true)
 		db.AutoMigrate(&model.Shoe{})
 
-		sqLite3 := &Sql{}
+		sqLite3 := &SQL{}
 		sqLite3.Init(db)
 		h = sqLite3
 	}
@@ -71,7 +71,7 @@ func testInsert(t *testing.T, storageName string) {
 
 	p1Src := model.Shoe{
 		Brand: "a",
-		Type: "b",
+		Type:  "b",
 	}
 
 	p1Dst, _ := s.Insert(p1Src)
@@ -85,7 +85,7 @@ func testInsert(t *testing.T, storageName string) {
 
 	p2Src := model.Shoe{
 		Brand: "c",
-		Type: "d",
+		Type:  "d",
 	}
 
 	p2Dst, _ := s.Insert(p2Src)
@@ -108,7 +108,7 @@ func testRead(t *testing.T, storageName string) {
 
 	p1 = model.Shoe{
 		Brand: "a",
-		Type: "b",
+		Type:  "b",
 	}
 	p2, _ = s.Insert(p1)
 
@@ -134,7 +134,7 @@ func testUpdate(t *testing.T, storageName string) {
 
 	p1Src := model.Shoe{
 		Brand: "a",
-		Type: "b",
+		Type:  "b",
 	}
 	p1Dst, _ := s.Insert(p1Src)
 
@@ -166,13 +166,13 @@ func testDelete(t *testing.T, storageName string) {
 
 	p1Src := model.Shoe{
 		Brand: "a",
-		Type: "b",
+		Type:  "b",
 	}
 	p1Dst, _ := s.Insert(p1Src)
 
 	p2Src := model.Shoe{
 		Brand: "a",
-		Type: "b",
+		Type:  "b",
 	}
 	p2Dst, _ := s.Insert(p2Src)
 

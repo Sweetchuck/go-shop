@@ -5,15 +5,15 @@ import (
 	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/model"
 )
 
-type Sql struct {
+type SQL struct {
 	db *gorm.DB
 }
 
-func (s *Sql) Init(db *gorm.DB) {
+func (s *SQL) Init(db *gorm.DB) {
 	s.db = db
 }
 
-func (s *Sql) Insert(p model.Person) (model.Person, error) {
+func (s *SQL) Insert(p model.Person) (model.Person, error) {
 	pp := &p
 
 	s.db.Model(p).Create(pp)
@@ -21,19 +21,19 @@ func (s *Sql) Insert(p model.Person) (model.Person, error) {
 	return *pp, nil
 }
 
-func (s *Sql) Read(id uint) (p model.Person) {
+func (s *SQL) Read(id uint) (p model.Person) {
 	s.db.Model(model.Person{}).First(&p)
 
 	return
 }
 
-func (s *Sql) Update(p model.Person, fields map[string]interface{}) (model.Person, error) {
+func (s *SQL) Update(p model.Person, fields map[string]interface{}) (model.Person, error) {
 	s.db.Model(&p).Updates(fields)
 
 	return p, nil
 }
 
-func (s *Sql) Delete(id uint) error {
+func (s *SQL) Delete(id uint) error {
 	p := model.Person{
 		Model: gorm.Model{
 			ID: id,
@@ -44,14 +44,14 @@ func (s *Sql) Delete(id uint) error {
 	return nil
 }
 
-func (s *Sql) List() (list []model.Person) {
+func (s *SQL) List() (list []model.Person) {
 	list = []model.Person{}
 	s.db.Model(model.Person{}).Find(&list)
 
 	return
 }
 
-func (s *Sql) Count() int {
+func (s *SQL) Count() int {
 	numOfRecords := new(int)
 	s.db.Model(model.Person{}).Count(numOfRecords)
 
