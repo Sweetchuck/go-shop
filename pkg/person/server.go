@@ -35,7 +35,7 @@ func (s Server) Create(w http.ResponseWriter, r *http.Request) {
 	p2, _ := s.Storage.Insert(*p)
 	body := map[string]interface{}{
 		"error": "",
-		"new": p2,
+		"new":   p2,
 	}
 
 	s.jsonBody(w, body)
@@ -54,7 +54,29 @@ func (s Server) Read(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) Update(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.ParseUint(vars["id"], 10, 64)
 
+	pOld := s.Storage.Read(uint(id))
+	if pOld.ID == 0 {
+		w.WriteHeader(404)
+
+		return
+	}
+
+	fields := map[string]interface{}{}
+	err := json.NewDecoder(r.Body).Decode(&fields)
+	if err != nil {
+		http.Error(w, err.Error(), 400)
+
+		return
+	}
+
+	delete(fields, "ID")
+	delete(fields, "Id")
+	delete(fields, "id")
+
+	s.Storage.Update(pOld, fields)
 }
 
 func (s Server) Delete(w http.ResponseWriter, r *http.Request) {

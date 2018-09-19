@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"github.com/gorilla/mux"
@@ -17,7 +18,6 @@ import (
 	shoeModel "gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe/model"
 	shoeStorage "gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe/storage"
 	"net/http"
-	"net/url"
 	"os"
 	"strings"
 )
@@ -30,7 +30,7 @@ var EnvVarNamePrefix = "SHOP"
 
 var ApiPathPrefix = "/api/v1"
 
-var DataSourceUrl = "mysql://root:mysql@tcp(127.0.0.1:3306)/go_shop2?charset=utf8"
+var DataSourceUrl = "mysql://root:mysql@tcp(127.0.0.1:3306)/go_shop2?charset=utf8&parseTime=True&loc=Local"
 
 var Address = ":8080"
 
@@ -182,16 +182,12 @@ func registerCrudServerRoutes(pathPrefix string, server base.CrudServer) {
 }
 
 func parseDataSourceUrl(dsUrl string) (sqlDialect string, sqlArgs []interface{}, err error) {
-	var dbUrl *url.URL
-
-	dbUrl, err = url.Parse(dsUrl)
-	if err != nil {
-		return
+	parts := strings.SplitN(dsUrl, "://", 2)
+	if len(parts) != 2 {
+		return sqlDialect, sqlArgs, errors.New("invalid data source format")
 	}
 
-	sqlDialect = dbUrl.Scheme
-
-	parts := strings.SplitN(dbUrl.String(), "//", 2)
+	sqlDialect = parts[0]
 	for _, sqlArg := range parts[1:] {
 		sqlArgs = append(sqlArgs, sqlArg)
 	}

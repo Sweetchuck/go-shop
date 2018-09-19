@@ -13,7 +13,7 @@ clean:
 		find $(buildDir) -mindepth 1 -maxdepth 1 -exec rm -rf {} \; ; \
 	fi;
 
-build: clean build-linux build-windows build-darwin
+build: clean build-linux build-windows build-darwin build-arm
 
 build-darwin:
 	env \
@@ -45,6 +45,17 @@ build-windows:
 		-v \
 		-p 8 \
 		-o "$(buildDir)/$(projectName)-$(version)-Windows-x86_64" \
+		-ldflags "-X main.GitRev=$(gitRev)" \
+
+build-arm:
+	env \
+		GOOS=linux \
+		GOARCH=arm \
+		GOARM=6 \
+	go build \
+		-v \
+		-p 8 \
+		-o "$(buildDir)/$(projectName)-$(version)-ARM" \
 		-ldflags "-X main.GitRev=$(gitRev)" \
 		.
 
