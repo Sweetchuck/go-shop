@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"errors"
 	"flag"
 	"fmt"
@@ -79,6 +80,8 @@ func main() {
 
 		initStorage()
 		router = mux.NewRouter()
+
+		registerStatusRoutes(ApiPathPrefix + "/status")
 
 		registerPersonServerRoutes(ApiPathPrefix+"/person", personServer)
 
@@ -179,6 +182,28 @@ func registerCrudServerRoutes(pathPrefix string, server base.CrudServer) {
 	router.
 		HandleFunc(pathPrefix+"/{id}", server.Delete).
 		Methods("DELETE")
+}
+
+func registerStatusRoutes(pathPrefix string) {
+	router.
+		HandleFunc(
+			pathPrefix,
+			func(w http.ResponseWriter, r *http.Request) {
+				w.Header().Set("Content-type", "application/json")
+
+				body := map[string]interface{}{
+					"version": fullVersion(),
+				}
+
+				encodedBody, err := json.MarshalIndent(body, "", "    ")
+				if err != nil {
+					fmt.Println(err)
+				}
+
+				fmt.Fprintf(w, string(encodedBody))
+			},
+		).
+		Methods("GET")
 }
 
 func parseDataSourceUrl(dsUrl string) (sqlDialect string, sqlArgs []interface{}, err error) {
