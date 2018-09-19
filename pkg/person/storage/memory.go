@@ -4,6 +4,7 @@ import (
 	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/person/model"
 	"sort"
 	"sync"
+	"time"
 )
 
 type Memory struct {
@@ -35,8 +36,10 @@ func (m *Memory) Update(p model.Person, fields map[string]interface{}) (model.Pe
 		switch v := value.(type) {
 		case string:
 			switch field {
-			case "Name", "name": fallthrough
-			case "Pass", "pass": fallthrough
+			case "Name", "name":
+				fallthrough
+			case "Pass", "pass":
+				fallthrough
 			case "Email", "email":
 				p.Name = v
 			}
@@ -51,14 +54,21 @@ func (m *Memory) Update(p model.Person, fields map[string]interface{}) (model.Pe
 }
 
 func (m *Memory) Delete(id uint) error {
-	delete(m.people, id)
+	p, ok := m.people[id]
+	if !ok {
+		return nil
+	}
+
+	now := time.Now()
+	p.DeletedAt = &now
+	m.people[id] = p
 
 	return nil
 }
 
-func (m *Memory) List() ([]model.Person) {
+func (m *Memory) List() []model.Person {
 	var list []model.Person
-	for key, _ := range m.people {
+	for key := range m.people {
 		if m.people[key].DeletedAt != nil {
 			continue
 		}
@@ -68,7 +78,7 @@ func (m *Memory) List() ([]model.Person) {
 
 	sort.Slice(
 		list,
-		func (i, j int) bool {
+		func(i, j int) bool {
 			return list[i].ID < list[j].ID
 		},
 	)
@@ -78,7 +88,7 @@ func (m *Memory) List() ([]model.Person) {
 
 func (m *Memory) Count() int {
 	numOfItems := 0
-	for key, _ := range m.people {
+	for key := range m.people {
 		if m.people[key].DeletedAt != nil {
 			continue
 		}

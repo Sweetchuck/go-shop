@@ -17,6 +17,7 @@ build: clean build-linux build-windows build-darwin build-arm
 
 build-darwin:
 	env \
+		CGO_ENABLED=1 \
 		GOOS=darwin \
 		GOARCH=amd64 \
 	go build \
@@ -28,6 +29,7 @@ build-darwin:
 
 build-linux:
 	env \
+		CGO_ENABLED=0 \
 		GOOS=linux \
 		GOARCH=amd64 \
 	go build \
@@ -39,6 +41,7 @@ build-linux:
 
 build-windows:
 	env \
+		CGO_ENABLED=1 \
 		GOOS=windows \
 		GOARCH=amd64 \
 	go build \
@@ -48,7 +51,14 @@ build-windows:
 		-ldflags "-X main.GitRev=$(gitRev)" \
 
 build-arm:
+	#		CXX_FOR_TARGET=CC_FOR_linux_arm \
 	env \
+		CC=arm-suse-linux-gnueabi-gcc \
+		CC_FOR_TARGET=CC_FOR_linux_arm \
+		CC_FOR_linux_arm=1 \
+		CGO_ENABLED=1 \
+		CGO_CFLAGS="--sysroot='/usr/lib64/gcc/arm-suse-linux-gnueabi/8'" \
+		CGO_LDFLAGS=""\
 		GOOS=linux \
 		GOARCH=arm \
 		GOARM=6 \
