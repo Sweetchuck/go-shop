@@ -19,7 +19,7 @@ clean:
 		find $(logDir) -mindepth 1 -maxdepth 1 -exec rm -rf {} \; ; \
 	fi;
 
-build: clean build-linux build-windows build-darwin build-arm
+build: clean build-linux
 
 build-darwin:
 	env \
