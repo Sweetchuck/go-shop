@@ -14,9 +14,11 @@ func (s *Sql) Init(db *gorm.DB) {
 }
 
 func (s *Sql) Insert(p model.Shoe) (model.Shoe, error) {
-	s.db.Model(p).Create(&p)
+	pp := &p
 
-	return p, nil
+	s.db.Model(p).Create(pp)
+
+	return *pp, nil
 }
 
 func (s *Sql) Read(id uint) (p model.Shoe) {
@@ -50,8 +52,8 @@ func (s *Sql) List() (list []model.Shoe) {
 }
 
 func (s *Sql) Count() int {
-	var numOfRecords int
+	numOfRecords := new(int)
 	s.db.Model(model.Shoe{}).Count(numOfRecords)
 
-	return numOfRecords
+	return *numOfRecords
 }

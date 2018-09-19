@@ -23,16 +23,23 @@ import (
 	"strings"
 )
 
+// Version number
 var Version = "1.0.0"
 
+// GitRev stores the meta data part of the version string
 var GitRev = ""
 
+// EnvVarNamePrefix stores the used environment variable names
 var EnvVarNamePrefix = "SHOP"
 
-var ApiPathPrefix = "/api/v1"
+// APIPathPrefix stores the path prefix for the api
+var APIPathPrefix = "/api/v1"
 
-var DataSourceUrl = "mysql://root:mysql@tcp(127.0.0.1:3306)/go_shop2?charset=utf8&parseTime=True&loc=Local"
+// DataSourceURL stores the gorm data source URL.
+// The "memory://whatever" also valid
+var DataSourceURL = "mysql://root:mysql@tcp(127.0.0.1:3306)/go_shop2?charset=utf8&parseTime=True&loc=Local"
 
+// Address to listen on
 var Address = ":8080"
 
 var actionToDo = "listenAndServe"
@@ -71,8 +78,8 @@ func main() {
 		fmt.Printf("%s\n", fullVersion())
 
 	default:
-		writeEnvVarIntoString("data_source_url", &DataSourceUrl)
-		writeEnvVarIntoString("api_path_prefix", &ApiPathPrefix)
+		writeEnvVarIntoString("data_source_url", &DataSourceURL)
+		writeEnvVarIntoString("api_path_prefix", &APIPathPrefix)
 		writeEnvVarIntoString("address", &Address)
 
 		personServer = person.Server{}
@@ -81,11 +88,11 @@ func main() {
 		initStorage()
 		router = mux.NewRouter()
 
-		registerStatusRoutes(ApiPathPrefix + "/status")
+		registerStatusRoutes(APIPathPrefix + "/status")
 
-		registerPersonServerRoutes(ApiPathPrefix+"/person", personServer)
+		registerPersonServerRoutes(APIPathPrefix+"/person", personServer)
 
-		registerShoeServerRoutes(ApiPathPrefix+"/shoe", shoeServer)
+		registerShoeServerRoutes(APIPathPrefix+"/shoe", shoeServer)
 
 		logger.Infof("starting web server on: %s", Address)
 		http.Handle("/", router)
@@ -97,9 +104,9 @@ func main() {
 }
 
 func initStorage() {
-	sqlDialect, sqlArgs, err := parseDataSourceUrl(DataSourceUrl)
+	sqlDialect, sqlArgs, err := parseDataSourceURL(DataSourceURL)
 	if err != nil {
-		logger.Errorf("Could not parse '%s' as URL\n", DataSourceUrl)
+		logger.Errorf("Could not parse '%s' as URL\n", DataSourceURL)
 
 		panic(err)
 	}
@@ -112,7 +119,7 @@ func initStorage() {
 		initStorageSQL(sqlDialect, sqlArgs)
 
 	default:
-		panic("Unknown data source: " + DataSourceUrl)
+		panic("Unknown data source: " + DataSourceURL)
 	}
 }
 
@@ -197,17 +204,22 @@ func registerStatusRoutes(pathPrefix string) {
 
 				encodedBody, err := json.MarshalIndent(body, "", "    ")
 				if err != nil {
-					fmt.Println(err)
+					logger.Error(err)
+
+					return
 				}
 
-				fmt.Fprintf(w, string(encodedBody))
+				_, err = fmt.Fprintf(w, string(encodedBody))
+				if err != nil {
+					logger.Error(err)
+				}
 			},
 		).
 		Methods("GET")
 }
 
-func parseDataSourceUrl(dsUrl string) (sqlDialect string, sqlArgs []interface{}, err error) {
-	parts := strings.SplitN(dsUrl, "://", 2)
+func parseDataSourceURL(dsURL string) (sqlDialect string, sqlArgs []interface{}, err error) {
+	parts := strings.SplitN(dsURL, "://", 2)
 	if len(parts) != 2 {
 		return sqlDialect, sqlArgs, errors.New("invalid data source format")
 	}

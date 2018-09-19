@@ -8,27 +8,27 @@ import (
 )
 
 type Memory struct {
-	people map[uint]model.Person
+	items map[uint]model.Person
 	sync.Mutex
 	lastID uint
 }
 
 func (m *Memory) Init() {
-	m.people = map[uint]model.Person{}
+	m.items = map[uint]model.Person{}
 }
 
 func (m *Memory) Insert(p model.Person) (model.Person, error) {
 	m.Lock()
 	m.lastID++
 	p.ID = m.lastID
-	m.people[p.ID] = p
+	m.items[p.ID] = p
 	m.Unlock()
 
 	return p, nil
 }
 
 func (m *Memory) Read(id uint) (p model.Person) {
-	return m.people[id]
+	return m.items[id]
 }
 
 func (m *Memory) Update(p model.Person, fields map[string]interface{}) (model.Person, error) {
@@ -37,48 +37,50 @@ func (m *Memory) Update(p model.Person, fields map[string]interface{}) (model.Pe
 		case string:
 			switch field {
 			case "Name", "name":
-				fallthrough
-			case "Pass", "pass":
-				fallthrough
-			case "Email", "email":
 				p.Name = v
+
+			case "Pass", "pass":
+				p.Pass = v
+
+			case "Email", "email":
+				p.Email = v
 			}
 		}
 	}
 
 	m.Lock()
-	m.people[p.ID] = p
+	m.items[p.ID] = p
 	m.Unlock()
 
 	return p, nil
 }
 
 func (m *Memory) Delete(id uint) error {
-	p, ok := m.people[id]
+	p, ok := m.items[id]
 	if !ok {
 		return nil
 	}
 
 	now := time.Now()
 	p.DeletedAt = &now
-	m.people[id] = p
+	m.items[id] = p
 
 	return nil
 }
 
 func (m *Memory) List() []model.Person {
 	var list []model.Person
-	for key := range m.people {
-		if m.people[key].DeletedAt != nil {
+	for id := range m.items {
+		if m.items[id].DeletedAt != nil {
 			continue
 		}
 
-		list = append(list, m.people[key])
+		list = append(list, m.items[id])
 	}
 
 	sort.Slice(
 		list,
-		func(i, j int) bool {
+		func (i, j int) bool {
 			return list[i].ID < list[j].ID
 		},
 	)
@@ -88,8 +90,8 @@ func (m *Memory) List() []model.Person {
 
 func (m *Memory) Count() int {
 	numOfItems := 0
-	for key := range m.people {
-		if m.people[key].DeletedAt != nil {
+	for key := range m.items {
+		if m.items[key].DeletedAt != nil {
 			continue
 		}
 

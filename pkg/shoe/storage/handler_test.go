@@ -2,12 +2,13 @@ package storage
 
 import (
 	"github.com/jinzhu/gorm"
+	_ "github.com/jinzhu/gorm/dialects/sqlite"
 	"gitlab.cheppers.com/devops-academy-2018/shop2/pkg/shoe/model"
 	"io/ioutil"
 	"testing"
 )
 
-func testHandler(t *testing.T) {
+func TestHandler(t *testing.T) {
 	names := [...]string{
 		"memory",
 		"sqlite3",
@@ -148,7 +149,7 @@ func testUpdate(t *testing.T, storageName string) {
 	p2Dst, _ := s.Update(
 		p1Dst,
 		map[string]interface{}{
-			"Name": "c",
+			"Brand": "c",
 		},
 	)
 
